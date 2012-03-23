@@ -1,0 +1,16 @@
+ 
+SaganSimulator is a gravitational simulator created in C language as a final project for my Undergraduate Program in Information Systems. We choose this name as a tribute to one of the greatest promoters of science, Dr. Carl Sagan.
+
+The code is being developed in ANSI C language. For now, it is possible to compile it under both operational systems, linux and windows. We are using the Code Blocks IDE to agile the development time.
+
+The code still under development and may contain some issues. Right now we are working to finish to implementation of the energy control routine. Also, a OpenCL code version is under development, to take advantage of the GPU parallel processing capabilities.
+
+Project Advisors:
+
+Prof. Dr. Luis Fernando Fortes Garcia - Faculdade Dom Bosco de Porto Alegre, Brazil
+Prof. Dr. Horácio Dottori - Universidade Federal do Rio Grande so Sul, Brazil
+Contact:
+
+Filipo Mór
+
+sagansimulator@gmail.compile
