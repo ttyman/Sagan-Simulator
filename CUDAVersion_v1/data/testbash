@@ -1,0 +1,10 @@
+
+for i in *.dat
+do
+   gnuplot -e " unset border ; unset xtics; unset ytics; unset ztics; set xrange [-2:2]; set yrange [-2:2]; set terminal jpeg; plot '$i' " > "${i/.dat/.jpeg}"
+done
+echo "gerando animacao..."
+ffmpeg -f image2 -i %3d.jpeg fig8Exec3.mpeg
+echo "animacao gerada!"
+
+

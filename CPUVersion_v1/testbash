@@ -1,0 +1,10 @@
+
+for i in *.dat
+do
+   gnuplot -e " unset border ; unset xtics; unset ytics; unset ztics; set xrange [-10.3:10.3]; set yrange [-10.3:10.3]; set terminal jpeg; plot '$i' " > "${i/.dat/.jpeg}"
+done
+echo "gerando animacao..."
+#ffmpeg -f image2 -i %3d.jpeg solarsystem.mpeg
+echo "animacao gerada!"
+
+
