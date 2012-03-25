@@ -1,5 +1,5 @@
 //
-// CUDA Sagan Simulator - a CUDA version fo the sagan Simulator Software
+// CUDA Sagan Simulator - a CUDA version of the sagan Simulator Software
 // version 1.0 - Alpha 01
 // by TTYMan
 //
@@ -42,19 +42,19 @@ __global__ void UpdateParticleData(float4* d_ParticleArrayPosition, float3* d_Pa
 __device__ float3 ParticleToParticleAccelerationWithPotentialEnergy ( float4 ParticleIPosition,
                                                                       float4 ParticleJPosition,
                                                                       float3 Acceleration,
-                                                                      float  SofteningFactor,
+                                                                      double  SofteningFactor,
                                                                       double* EPot )
 {
 
-    float XDist;
-    float YDist;
-    float ZDist;
-    float XT;
-    float YT;
-    float ZT;
-    float DistanceSQR;
-    float Rinv;
-    float Rinv3;
+    double XDist;
+    double YDist;
+    double ZDist;
+    double XT;
+    double YT;
+    double ZT;
+    double DistanceSQR;
+    double Rinv;
+    double Rinv3;
     double PotentialEnergy = 0.0;
 
     //float eps = 4.0f/N; // softening factor
@@ -71,7 +71,7 @@ __device__ float3 ParticleToParticleAccelerationWithPotentialEnergy ( float4 Par
 
     DistanceSQR = XT + YT + ZT;
 
-    Rinv = 1.0f / sqrtf( DistanceSQR + (SofteningFactor * SofteningFactor) );
+    Rinv = 1.0 / sqrtf( DistanceSQR + (SofteningFactor * SofteningFactor) );
 
     Rinv3 = (Rinv * Rinv * Rinv);
 
@@ -80,7 +80,7 @@ __device__ float3 ParticleToParticleAccelerationWithPotentialEnergy ( float4 Par
 	Acceleration.z -= ParticleJPosition.w * ZDist * Rinv3;
 
     // Potential Energy calculation
-    PotentialEnergy = (ParticleIPosition.w * ParticleJPosition.w) / sqrtf( DistanceSQR + (SofteningFactor * SofteningFactor) );
+    PotentialEnergy = (ParticleIPosition.w * ParticleJPosition.w) / sqrt( DistanceSQR + (SofteningFactor * SofteningFactor) );
     //PotentialEnergy = (ParticleIPosition.w * ParticleJPosition.w) / sqrt( DistanceSQR + (SofteningFactor * SofteningFactor) );
     *EPot = PotentialEnergy;
 
@@ -92,18 +92,18 @@ __device__ float3 ParticleToParticleAccelerationWithPotentialEnergy ( float4 Par
 __device__ float3 ParticleToParticleAcceleration(float4 ParticleIPosition,
                                                  float4 ParticleJPosition,
                                                  float3 Acceleration,
-                                                 float  SofteningFactor)
+                                                 double  SofteningFactor)
 {
 
-    float XDist;
-    float YDist;
-    float ZDist;
-    float XT;
-    float YT;
-    float ZT;
-    float DistanceSQR;
-    float Rinv;
-    float Rinv3;
+    double XDist;
+    double YDist;
+    double ZDist;
+    double XT;
+    double YT;
+    double ZT;
+    double DistanceSQR;
+    double Rinv;
+    double Rinv3;
 
     //float eps = 4.0f/N; // softening factor
 	// SofteningFactor = eps
@@ -119,7 +119,7 @@ __device__ float3 ParticleToParticleAcceleration(float4 ParticleIPosition,
 
     DistanceSQR = XT + YT + ZT;
 
-    Rinv = 1.0f / sqrtf( DistanceSQR + (SofteningFactor * SofteningFactor) );
+    Rinv = 1.0 / sqrtf( DistanceSQR + (SofteningFactor * SofteningFactor) );
 
     Rinv3 = (Rinv * Rinv * Rinv);
 
@@ -222,8 +222,8 @@ extern __shared__ double2 SharedMemExternArray[]; //.x for KE and .y for PE!
 __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_ParticleArrayPosition,
                                                                 float3* d_ParticleArrayVelocity,
                                                                 int     N                      ,
-                                                                float   SofteningFactor        ,
-                                                                float   TimeStep               ,
+                                                                double   SofteningFactor        ,
+                                                                double   TimeStep               ,
                                                                 double   *d_KineticEnergy        ,
                                                                 double   *d_PotentialEnergy      )
 {
@@ -231,12 +231,12 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
     // array alocated on shared memory to save kinetic and potential energy values for each particle.
     // SharedMemArray[index].x holds the Kinetic Energy.
     // SharedMemArray[index].y holds the Potential Energy.
-    float2* SharedMemArray = (float2*)SharedMemExternArray;
+    double2* SharedMemArray = (double2*)SharedMemExternArray;
 
     // set initial positions
-    d_ParticleArrayPosition[threadIdx.x].x += ( d_ParticleArrayVelocity[threadIdx.x].x * TimeStep ) / 2.0f;
-    d_ParticleArrayPosition[threadIdx.x].y += ( d_ParticleArrayVelocity[threadIdx.x].y * TimeStep ) / 2.0f;
-    d_ParticleArrayPosition[threadIdx.x].z += ( d_ParticleArrayVelocity[threadIdx.x].z * TimeStep ) / 2.0f;
+    d_ParticleArrayPosition[threadIdx.x].x += ( d_ParticleArrayVelocity[threadIdx.x].x * TimeStep ) / 2.0;
+    d_ParticleArrayPosition[threadIdx.x].y += ( d_ParticleArrayVelocity[threadIdx.x].y * TimeStep ) / 2.0;
+    d_ParticleArrayPosition[threadIdx.x].z += ( d_ParticleArrayVelocity[threadIdx.x].z * TimeStep ) / 2.0;
 
     __syncthreads();
 
@@ -249,7 +249,8 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
 
 
     float3 Acceleration    = {0.0f, 0.0f, 0.0f };
-    double  PotentialEnergy;
+    double PotentialEnergy = 0.0;
+    double PotentialEnergyACUM = 0.0;
 
     for(int j=0; j<N; j++)
     {
@@ -260,6 +261,7 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
                                                                                   Acceleration,
                                                                                   SofteningFactor,
                                                                                   &PotentialEnergy );
+                PotentialEnergyACUM += PotentialEnergy;
         }
     }
     __syncthreads();
@@ -270,9 +272,9 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
         d_ParticleArrayVelocity[index].z   += Acceleration.z * TimeStep;
 
         // updating the coordinates
-        d_ParticleArrayPosition[index].x += (d_ParticleArrayVelocity[index].x * TimeStep)/2.0f;
-        d_ParticleArrayPosition[index].y += (d_ParticleArrayVelocity[index].y * TimeStep)/2.0f;
-        d_ParticleArrayPosition[index].z += (d_ParticleArrayVelocity[index].z * TimeStep)/2.0f;
+        d_ParticleArrayPosition[index].x += (d_ParticleArrayVelocity[index].x * TimeStep)/2.0;
+        d_ParticleArrayPosition[index].y += (d_ParticleArrayVelocity[index].y * TimeStep)/2.0;
+        d_ParticleArrayPosition[index].z += (d_ParticleArrayVelocity[index].z * TimeStep)/2.0;
 
         // Kinetic Energy calculation
         SharedMemArray[index].x = (( d_ParticleArrayVelocity[threadIdx.x].x * d_ParticleArrayVelocity[threadIdx.x].x )  +
@@ -281,7 +283,7 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
                                      d_ParticleArrayPosition[threadIdx.x].w;
 
         // Potential Energy saving
-        SharedMemArray[index].y = PotentialEnergy;
+        SharedMemArray[index].y = PotentialEnergyACUM;
 
     __syncthreads();
 
@@ -310,6 +312,101 @@ __global__ void UpdateParticlesAccelerationAndEnergyCalculation(float4* d_Partic
     }
 }
 
+__global__ void EnergyCalculation(float4* d_ParticleArrayPosition,
+                                  float3* d_ParticleArrayVelocity,
+                                  int     N                      ,
+                                  double   SofteningFactor       ,
+                                  double   TimeStep              ,
+                                  double   *d_KineticEnergy      ,
+                                  double   *d_PotentialEnergy     )
+{
+
+    // This is the same routine "UpdateParticlesAccelerationAndEnergyCalculation", but instead to
+    // update particles acceleration and position data, only calculates the KE and PE!
+
+    // array alocated on shared memory to save kinetic and potential energy values for each particle.
+    // SharedMemArray[index].x holds the Kinetic Energy.
+    // SharedMemArray[index].y holds the Potential Energy.
+    float2* SharedMemArray = (float2*)SharedMemExternArray;
+
+    // set initial positions
+    //d_ParticleArrayPosition[threadIdx.x].x += ( d_ParticleArrayVelocity[threadIdx.x].x * TimeStep ) / 2.0;
+    //d_ParticleArrayPosition[threadIdx.x].y += ( d_ParticleArrayVelocity[threadIdx.x].y * TimeStep ) / 2.0;
+    //d_ParticleArrayPosition[threadIdx.x].z += ( d_ParticleArrayVelocity[threadIdx.x].z * TimeStep ) / 2.0;
+
+    //__syncthreads();
+
+    unsigned int index = threadIdx.x + blockIdx.x * blockDim.x;
+    if(index>N) return;
+
+    // Kinetic Energy calculation - teste teste teste
+    //SharedMemArray[index].x = 1.0f;	// KE
+    //SharedMemArray[index].y = 2.2f;	// PE
+
+
+    float3 Acceleration    = {0.0f, 0.0f, 0.0f };
+    double PotentialEnergy = 0.0;
+    double PotentialEnergyACUM = 0.0;
+
+    for(int j=0; j<N; j++)
+    {
+        if(j!=index) // avoid comparition between the same particle!
+        {
+                Acceleration = ParticleToParticleAccelerationWithPotentialEnergy( d_ParticleArrayPosition[index],
+                                                                                  d_ParticleArrayPosition[j],
+                                                                                  Acceleration,
+                                                                                  SofteningFactor,
+                                                                                  &PotentialEnergy );
+                PotentialEnergyACUM += PotentialEnergy;
+        }
+    }
+    __syncthreads();
+
+        // updating the velocities
+        //d_ParticleArrayVelocity[index].x   += Acceleration.x * TimeStep;
+        //d_ParticleArrayVelocity[index].y   += Acceleration.y * TimeStep;
+        //d_ParticleArrayVelocity[index].z   += Acceleration.z * TimeStep;
+
+        // updating the coordinates
+        //d_ParticleArrayPosition[index].x += (d_ParticleArrayVelocity[index].x * TimeStep)/2.0;
+        //d_ParticleArrayPosition[index].y += (d_ParticleArrayVelocity[index].y * TimeStep)/2.0;
+        //d_ParticleArrayPosition[index].z += (d_ParticleArrayVelocity[index].z * TimeStep)/2.0;
+
+        // Kinetic Energy calculation
+        SharedMemArray[index].x = (( d_ParticleArrayVelocity[threadIdx.x].x * d_ParticleArrayVelocity[threadIdx.x].x )  +
+                                   ( d_ParticleArrayVelocity[threadIdx.x].y * d_ParticleArrayVelocity[threadIdx.x].y )  +
+                                   ( d_ParticleArrayVelocity[threadIdx.x].z * d_ParticleArrayVelocity[threadIdx.x].z )) *
+                                     d_ParticleArrayPosition[threadIdx.x].w;
+
+        // Potential Energy saving
+        SharedMemArray[index].y = PotentialEnergyACUM;
+
+    __syncthreads();
+
+    if(threadIdx.x == 0)
+    {
+        double KEsum = 0.0;   *d_KineticEnergy    = 0.0;
+        double PEsum = 0.0;   *d_PotentialEnergy  = 0.0;
+        for(int i=0; i < N; i++)
+        {
+            // adds the kinetic energy for all particles.
+            KEsum += SharedMemArray[i].x;
+
+            // sums the potential energy for each particle.
+            PEsum -= SharedMemArray[i].y;
+        }
+        //Kinetic Energy totalization
+        KEsum = KEsum * 0.5; // from the physical definition of the problem!
+        //atomicAdd(d_KineticEnergy, KEsum);
+        *d_KineticEnergy += KEsum;
+
+        //Potential Energy totalization
+        PEsum = PEsum / 2.0; // to avoid doubled values!
+        //atomicAdd(d_PotentialEnergy, PEsum);
+        *d_PotentialEnergy += PEsum;
+
+    }
+}
 
 
 
@@ -500,13 +597,13 @@ int main(int argc, char **argv)
     //UpdateParticleData<<<1, N>>>(d_ParticleArrayPosition, d_ParticleArrayVelocity);
 
     int i=0;    // we need these sequential numbers to name the output files.
-    float t = 0.0f;        // controls the amount of time steps already processed for the simulation.
-    float dt = 0.0001f;    // indicates the contribution of each scan for the simulation evolution.
-    float dtout = 0.01f;   // indicates the value of the step where a result file has to be generated.
-    float tout = t+dtout;
+    double t = 0.0;        // controls the amount of time steps already processed for the simulation.
+    double dt = 0.0001;    // indicates the contribution of each scan for the simulation evolution.
+    double dtout = 0.01;   // indicates the value of the step where a result file has to be generated.
+    double tout = t+dtout;
     int    timeSteps = 10; //WARNING!! Don't forget to update this value with the desired time steps amount!
-    float epson = 0.0f;
-    if(N>100)epson = 4.0f/N; // softening factor
+    double epson = 0.0;
+    if(N>100)epson = 4.0/N; // softening factor
 
     char ResultFileName[100];
 
@@ -519,6 +616,26 @@ int main(int argc, char **argv)
     PotentialEnergy = (double*)malloc(sizeof(double));
     cudaMalloc( (void**)&d_KineticEnergy,   sizeof(double));
     cudaMalloc( (void**)&d_PotentialEnergy, sizeof(double));
+
+    // this first execution is used to calculate the initial energy of the system. No updates are done.
+    size_t SharedMemorySize = sizeof(double2) * N;
+    EnergyCalculation<<<NUMBER_OF_BLOCKS, THREADS_PER_BLOCK, SharedMemorySize>>>( d_ParticleArrayPosition,
+                                                                                  d_ParticleArrayVelocity,
+                                                                                  N,
+                                                                                  epson,
+                                                                                  dt,
+                                                                                  d_KineticEnergy,
+                                                                                  d_PotentialEnergy );
+
+    // copy calculated energy values from device memory back to host memory.
+    CUDA_SAFE_CALL( cudaMemcpy(KineticEnergy,         d_KineticEnergy,         sizeof(double),    cudaMemcpyDeviceToHost) );
+    CUDA_SAFE_CALL( cudaMemcpy(PotentialEnergy,       d_PotentialEnergy,       sizeof(double),    cudaMemcpyDeviceToHost) );
+
+    double InitialKE = *KineticEnergy;
+    double InitialPE = *PotentialEnergy;
+    double InitialTotalEnergy = InitialKE + InitialPE;
+    EnergyLog("./data/energy.log", 0, InitialTotalEnergy , InitialKE, InitialPE, 0.0, "w");
+
 
     while (t<=timeSteps)
     {
@@ -534,6 +651,8 @@ int main(int argc, char **argv)
                                                                                                                     dt,
                                                                                                                     d_KineticEnergy,
                                                                                                                     d_PotentialEnergy );
+
+
         t += dt;
 
         if(t>tout)
@@ -553,7 +672,8 @@ int main(int argc, char **argv)
                 double EK = *KineticEnergy;
                 double EP = *PotentialEnergy;
                 double EnergiaTotal  = EK + EP;
-                EnergyLog("./data/energy.log", t, EnergiaTotal , EK, EP, 0.0f, "a");
+                double EnergyError = ( EnergiaTotal - InitialTotalEnergy) / fabs(InitialTotalEnergy);
+                EnergyLog("./data/energy.log", t, EnergiaTotal , EK, EP, EnergyError, "a");
                 //EnergyLog("./data/energy.log", EnergiaTotal , 0.0f, 0.0f, "a");
         }
 
